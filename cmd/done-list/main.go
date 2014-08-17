@@ -27,6 +27,7 @@ func createClient() *github.Client {
 func fetchIssues(client *github.Client) ([]github.Issue, error) {
 	options := &github.IssueListOptions{
 		Filter: "subscribed",
+		State:  "all",
 		Sort:   "updated",
 		Since:  time.Now().AddDate(0, 0, -1),
 		ListOptions: github.ListOptions{
