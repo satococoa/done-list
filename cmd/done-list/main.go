@@ -40,9 +40,10 @@ func fetchIssues(client *github.Client) ([]github.Issue, error) {
 
 func issuesByRepo(issues []github.Issue) map[string][]github.Issue {
 	repoNameWithType := func(issue github.Issue) string {
-		url := *issue.URL
-		exp, _ := regexp.Compile("https://api.github.com/repos/(.+)/[0-9]+$")
-		match := exp.FindStringSubmatch(url)
+		htmlURL := *issue.HTMLURL
+		exp, _ := regexp.Compile("https://github.com/(.+)/[0-9]+$")
+		match := exp.FindStringSubmatch(htmlURL)
+		fmt.Println(issue.String())
 		return match[1]
 	}
 	issuesByRepo := make(map[string][]github.Issue)
