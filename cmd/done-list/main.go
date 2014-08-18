@@ -43,7 +43,6 @@ func issuesByRepo(issues []github.Issue) map[string][]github.Issue {
 		htmlURL := *issue.HTMLURL
 		exp, _ := regexp.Compile("https://github.com/(.+)/[0-9]+$")
 		match := exp.FindStringSubmatch(htmlURL)
-		fmt.Println(issue.String())
 		return match[1]
 	}
 	issuesByRepo := make(map[string][]github.Issue)
