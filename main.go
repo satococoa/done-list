@@ -18,16 +18,16 @@ type CLI struct{ outStream, errStream io.Writer }
 func (c *CLI) Run(args []string) int {
 	githubAccessToken := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if githubAccessToken == "" {
-		fmt.Println("Please set GITHUB_ACCESS_TOKEN")
+		fmt.Fprintln(c.errStream, "Please set GITHUB_ACCESS_TOKEN")
 		return ExitCodeSettingError
 	}
 	client := donelist.CreateClient(githubAccessToken)
 	issues, err := donelist.FetchIssues(client)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(c.errStream, err)
 		os.Exit(ExitCodeSettingError)
 	}
-	donelist.PrintDoneList(issues)
+	donelist.PrintDoneList(c.outStream, issues)
 	return ExitCodeOK
 }
 

@@ -3,6 +3,7 @@ package donelist
 import (
 	"context"
 	"fmt"
+	"io"
 	"regexp"
 	"time"
 
@@ -49,10 +50,10 @@ func issuesByRepo(issues []*github.Issue) map[string][]*github.Issue {
 	return issuesByRepo
 }
 
-func PrintDoneList(issues []*github.Issue) {
+func PrintDoneList(writer io.Writer, issues []*github.Issue) {
 	collectedIssues := issuesByRepo(issues)
 	for name, issues := range collectedIssues {
-		fmt.Printf("## %s\n", name)
+		fmt.Fprintf(writer, "## %s\n", name)
 		for _, issue := range issues {
 			var mark string
 			if *issue.State == "closed" {
@@ -60,8 +61,8 @@ func PrintDoneList(issues []*github.Issue) {
 			} else {
 				mark = " "
 			}
-			fmt.Printf("- [%s] [%s by %s](%s)\n", mark, *issue.Title, *issue.User.Login, *issue.HTMLURL)
+			fmt.Fprintf(writer, "- [%s] [%s by %s](%s)\n", mark, *issue.Title, *issue.User.Login, *issue.HTMLURL)
 		}
-		fmt.Println("")
+		fmt.Fprintln(writer, "")
 	}
 }
