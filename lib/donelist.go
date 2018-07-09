@@ -1,30 +1,25 @@
-package main
+package donelist
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/satococoa/github-auth/client"
+	"golang.org/x/oauth2"
 )
 
-func main() {
-	client := createClient()
-	issues, err := fetchIssues(client)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	printDoneList(issues)
+func CreateClient(accessToken string) *github.Client {
+	ctx := context.Background()
+	tokenSource := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: accessToken},
+	)
+	tokenClient := oauth2.NewClient(ctx, tokenSource)
+	return github.NewClient(tokenClient)
 }
 
-func createClient() *github.Client {
-	return client.CreateClient("done-list-golang", []string{"repo", "public_repo", "read:org"})
-}
-
-func fetchIssues(client *github.Client) ([]github.Issue, error) {
+func FetchIssues(client *github.Client) ([]*github.Issue, error) {
 	options := &github.IssueListOptions{
 		Filter: "subscribed",
 		State:  "all",
@@ -34,18 +29,18 @@ func fetchIssues(client *github.Client) ([]github.Issue, error) {
 			PerPage: 100,
 		},
 	}
-	issues, _, err := client.Issues.List(true, options)
+	issues, _, err := client.Issues.List(context.Background(), true, options)
 	return issues, err
 }
 
-func issuesByRepo(issues []github.Issue) map[string][]github.Issue {
-	repoNameWithType := func(issue github.Issue) string {
+func issuesByRepo(issues []*github.Issue) map[string][]*github.Issue {
+	repoNameWithType := func(issue *github.Issue) string {
 		htmlURL := *issue.HTMLURL
 		exp, _ := regexp.Compile("https://github.com/(.+)/[0-9]+$")
 		match := exp.FindStringSubmatch(htmlURL)
 		return match[1]
 	}
-	issuesByRepo := make(map[string][]github.Issue)
+	issuesByRepo := make(map[string][]*github.Issue)
 
 	for _, issue := range issues {
 		name := repoNameWithType(issue)
@@ -54,7 +49,7 @@ func issuesByRepo(issues []github.Issue) map[string][]github.Issue {
 	return issuesByRepo
 }
 
-func printDoneList(issues []github.Issue) {
+func PrintDoneList(issues []*github.Issue) {
 	collectedIssues := issuesByRepo(issues)
 	for name, issues := range collectedIssues {
 		fmt.Printf("## %s\n", name)
